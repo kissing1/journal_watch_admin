@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem \"e:\\\\Project_jornal_watch\\\\Project_journal_watch_admin\\\\journal-watch-admin\\\\src\\\\app\\\\page\\\\shared\" -Recurse -File)",
+      "Bash(Select-Object FullName)"
+    ]
+  }
+}

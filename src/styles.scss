@@ -1,1 +1,46 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global layout — ทำให้ app เต็มหน้าจอโดยไม่มี scroll ส่วนเกิน */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* app-root เป็น flex column เต็ม viewport */
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* header ไม่ยืด */
+app-header {
+  flex-shrink: 0;
+}
+
+/* component ที่ render ผ่าน router-outlet ยืดเต็มพื้นที่ที่เหลือ */
+app-root > *:not(app-header):not(router-outlet):not(app-footer) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* footer อยู่ท้ายสุด ไม่ยืด */
+app-footer {
+  flex-shrink: 0;
+}
+
+/* layout สำหรับหน้าที่มี sidebar: sidebar + content เรียงแนวนอน */
+.main-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.page-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-width: 0;
+}

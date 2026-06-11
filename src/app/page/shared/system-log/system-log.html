@@ -1,0 +1,83 @@
+<div class="page-shell">
+
+  <div class="page-header">
+    <div class="page-icon-wrap" data-color="gray"><span>📋</span></div>
+    <div class="page-header-text">
+      <div class="page-breadcrumb">เมนูระบบ</div>
+      <h1 class="page-title">บันทึกระบบ</h1>
+      <p class="page-sub">ตรวจสอบประวัติการใช้งาน Log ระบบ และ Audit Trail</p>
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="log-stat-row">
+    <div class="log-stat">
+      <span class="ls-val">{{ counts.all }}</span>
+      <span class="ls-label">ทั้งหมด</span>
+    </div>
+    <div class="log-stat" data-type="login">
+      <span class="ls-val">{{ counts.login }}</span>
+      <span class="ls-label">เข้าสู่ระบบ</span>
+    </div>
+    <div class="log-stat" data-type="data">
+      <span class="ls-val">{{ counts.data }}</span>
+      <span class="ls-label">แก้ไขข้อมูล</span>
+    </div>
+    <div class="log-stat" data-type="system">
+      <span class="ls-val">{{ counts.system }}</span>
+      <span class="ls-label">ระบบ</span>
+    </div>
+    <div class="log-stat" data-type="error">
+      <span class="ls-val">{{ counts.error }}</span>
+      <span class="ls-label">ข้อผิดพลาด</span>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs">
+    @for (f of filters; track f.key) {
+      <button class="filter-tab" [class.active]="activeFilter() === f.key"
+              (click)="activeFilter.set(f.key)">
+        {{ f.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Log table -->
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>เวลา</th>
+          <th>ผู้ใช้</th>
+          <th>กิจกรรม</th>
+          <th>IP Address</th>
+          <th>ประเภท</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (log of filtered; track log.time + log.user) {
+          <tr>
+            <td class="date-cell">{{ log.time }}</td>
+            <td class="username-cell">{{ log.user }}</td>
+            <td>{{ log.action }}</td>
+            <td class="ip-cell">{{ log.ip }}</td>
+            <td>
+              <span class="log-type-badge" [attr.data-type]="log.type">
+                @switch (log.type) {
+                  @case ('login')  { เข้าสู่ระบบ }
+                  @case ('data')   { แก้ไขข้อมูล }
+                  @case ('system') { ระบบ }
+                  @case ('error')  { ข้อผิดพลาด }
+                }
+              </span>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="empty-row">ไม่มีข้อมูลในกลุ่มนี้</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+</div>

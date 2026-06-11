@@ -1,0 +1,37 @@
+<div class="dashboard">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="role-chip">SuperAdmin</div>
+      <h1 class="page-title">แดชบอร์ด</h1>
+      <p class="page-sub">{{ currentDate() }}</p>
+    </div>
+    <div class="welcome-badge">
+      <span class="welcome-icon">👋</span>
+      <span class="welcome-text">ยินดีต้อนรับ, <strong>{{ userName }}</strong></span>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stat-grid">
+    @for (s of stats; track s.label) {
+      <div class="stat-card" [attr.data-color]="s.color">
+        <div class="stat-icon">{{ s.icon }}</div>
+        <div class="stat-body">
+          <div class="stat-value">{{ s.value }}</div>
+          <div class="stat-label">{{ s.label }}</div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Placeholder content area -->
+  <div class="content-area">
+    <div class="content-placeholder">
+      <span class="placeholder-icon">📊</span>
+      <p>ยังไม่มีข้อมูล — เชื่อมต่อ API เพื่อแสดงสถิติ</p>
+    </div>
+  </div>
+
+</div>

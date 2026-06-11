@@ -1,0 +1,70 @@
+<div class="page-shell">
+
+  <div class="page-header">
+    <div class="page-icon-wrap" data-color="blue"><span>👥</span></div>
+    <div class="page-header-text">
+      <div class="page-breadcrumb">เมนูจัดการ</div>
+      <h1 class="page-title">จัดการผู้ใช้</h1>
+      <p class="page-sub">เพิ่ม แก้ไข และลบบัญชีผู้ใช้งานในระบบ</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" placeholder="ค้นหาชื่อ หรือ username…"
+             [value]="searchText()" (input)="searchText.set($any($event.target).value)" />
+    </div>
+    <button class="btn-add">
+      <span>＋</span> เพิ่มผู้ใช้
+    </button>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ผู้ใช้</th>
+          <th>Username</th>
+          <th>บทบาท</th>
+          <th>สถานะ</th>
+          <th>วันที่สร้าง</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of filtered; track u.id) {
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="avatar" [attr.data-role]="u.role">{{ initials(u) }}</div>
+                <span class="user-fullname">{{ u.firstName }} {{ u.lastName }}</span>
+              </div>
+            </td>
+            <td class="username-cell">{{ u.username }}</td>
+            <td>
+              <span class="role-badge" [attr.data-role]="u.role">{{ u.role }}</span>
+            </td>
+            <td>
+              <span class="status-badge" [class.active]="u.active">
+                {{ u.active ? 'ใช้งาน' : 'ระงับ' }}
+              </span>
+            </td>
+            <td class="date-cell">{{ u.createdAt }}</td>
+            <td>
+              <div class="action-wrap">
+                <button class="action-btn edit" title="แก้ไข">✏️</button>
+                <button class="action-btn delete" title="ลบ">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty-row">ไม่พบผู้ใช้ที่ตรงกับคำค้นหา</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+</div>

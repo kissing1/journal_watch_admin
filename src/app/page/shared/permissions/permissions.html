@@ -1,0 +1,63 @@
+<div class="page-shell">
+
+  <div class="page-header">
+    <div class="page-icon-wrap" data-color="teal"><span>🔑</span></div>
+    <div class="page-header-text">
+      <div class="page-breadcrumb">เมนูจัดการ</div>
+      <h1 class="page-title">สิทธิ์การใช้งาน</h1>
+      <p class="page-sub">ตารางสิทธิ์การเข้าถึงของแต่ละบทบาทในระบบ</p>
+    </div>
+  </div>
+
+  <!-- Role cards -->
+  <div class="role-cards">
+    <div class="role-card" data-role="Admin">
+      <div class="rc-icon">🛡️</div>
+      <div class="rc-body">
+        <div class="rc-name">Admin</div>
+        <div class="rc-desc">เจ้าหน้าที่ดูแลวารสาร ค้นหาและตรวจสอบข้อมูล</div>
+      </div>
+    </div>
+    <div class="role-card" data-role="SuperAdmin">
+      <div class="rc-icon">👑</div>
+      <div class="rc-body">
+        <div class="rc-name">SuperAdmin</div>
+        <div class="rc-desc">ผู้ดูแลระบบสูงสุด มีสิทธิ์ทุกอย่างในระบบ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Permission matrix -->
+  <div class="table-card">
+    <table class="data-table perm-table">
+      <thead>
+        <tr>
+          <th class="perm-col">สิทธิ์การใช้งาน</th>
+          <th class="role-col">Admin</th>
+          <th class="role-col">SuperAdmin</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (group of groups; track group) {
+          <tr class="group-row">
+            <td colspan="3">{{ group }}</td>
+          </tr>
+          @for (row of rowsByGroup(group); track row.label) {
+            <tr>
+              <td class="perm-label">{{ row.label }}</td>
+              <td class="check-cell">
+                @if (row.admin) { <span class="check yes">✓</span> }
+                @else           { <span class="check no">—</span>  }
+              </td>
+              <td class="check-cell">
+                @if (row.superAdmin) { <span class="check yes">✓</span> }
+                @else                { <span class="check no">—</span>  }
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+</div>
