@@ -1,6 +1,9 @@
 import { Component, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Constants } from '../../comfig/constants';
+import { GetAdminRes } from '../../model/res/get_admin_res';
 
 interface NavChild {
   label: string;
@@ -11,7 +14,7 @@ interface NavItem {
   label: string;
   icon: string;
   route?: string;
-  roles?: string[];           // ถ้าไม่ระบุ = แสดงทุก role
+  roles?: string[];
   children?: NavChild[];
 }
 
@@ -29,62 +32,91 @@ interface NavGroup {
 export class Sidebar implements OnInit {
   @Input() isOpen = true;
 
-  private user = JSON.parse(localStorage.getItem('user') ?? '{}');
+  // ข้อมูล user — แสดงจาก localStorage ทันที, API call อัปเดต background
+  private cached = JSON.parse(localStorage.getItem('user') ?? '{}');
 
-  userRole     = this.user?.role     ?? '';
-  userName     = (`${this.user?.firstName ?? ''} ${this.user?.lastName ?? ''}`).trim() || (this.user?.username ?? '');
-  userEmail    = this.user?.username ?? '';
+  userRole     = this.cached?.role     ?? '';
+  userName     = (`${this.cached?.firstName ?? ''} ${this.cached?.lastName ?? ''}`).trim()
+                 || (this.cached?.username ?? '');
+  userEmail    = this.cached?.msuMail  ?? this.cached?.username ?? '';
   userInitials = this.userName.charAt(0).toUpperCase() || 'A';
   userPicture  = '';
 
   private expandedItems = signal<Set<string>>(new Set());
 
-  readonly allNavGroups: NavGroup[] = [
-    {
-      group: 'หลัก',
-      items: [
-        { label: 'แดชบอร์ด',      icon: '📊', route: this.getDashboardRoute() },
-        { label: 'ค้นหาวารสาร',   icon: '🔍', route: '/search' },
-        { label: 'วารสารต้องห้าม', icon: '🚫', route: '/msu-unwanted' },
-      ],
-    },
-    {
-      group: 'จัดการ',
-      items: [
-        { label: 'จัดการผู้ใช้',   icon: '👥', route: '/manage-users' },
-        { label: 'สิทธิ์การเข้าถึง', icon: '🔐', route: '/permissions' },
-        { label: 'รายงาน',          icon: '📈', route: '/reports', roles: ['SuperAdmin'] },
-      ],
-    },
-    {
-      group: 'ระบบ',
-      items: [
-        { label: 'ตั้งค่าระบบ',    icon: '⚙️', route: '/settings' },
-        { label: 'Backup & Restore', icon: '💾', route: '/backup-restore' },
-        { label: 'บันทึกระบบ',     icon: '📋', route: '/system-log',   roles: ['SuperAdmin'] },
-      ],
-    },
-  ];
+  constructor(
+    private readonly router: Router,
+    private readonly http: HttpClient,
+    private readonly constants: Constants,
+  ) {}
+
+  ngOnInit() {
+    this.fetchMe();
+  }
+
+  private fetchMe() {
+    const token = localStorage.getItem('auth_token') ?? '';
+    this.http.get<GetAdminRes>(`${this.constants.API_ENDPOINT}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).subscribe({
+      next: (res) => {
+        const d = res.data;
+        this.userRole     = d.role;
+        this.userName     = (`${d.firstName} ${d.lastName}`).trim() || d.username;
+        this.userEmail    = d.msuMail || d.username;
+        this.userInitials = (d.firstName.charAt(0) + d.lastName.charAt(0)).toUpperCase() || 'A';
+
+        this.userPicture  = d.picture ?? '';
+
+        // อัปเดต localStorage ให้ sync
+        localStorage.setItem('user', JSON.stringify(d));
+      },
+      error: () => { /* ใช้ข้อมูลจาก localStorage แทน (แสดงอยู่แล้ว) */ },
+    });
+  }
+
+  get allNavGroups(): NavGroup[] {
+    return [
+      {
+        group: 'หลัก',
+        items: [
+          { label: 'แดชบอร์ด',       icon: '📊', route: this.getDashboardRoute() },
+          { label: 'ค้นหาวารสาร',    icon: '🔍', route: '/search' },
+          { label: 'วารสารต้องห้าม', icon: '🚫', route: '/msu-unwanted' },
+        ],
+      },
+      {
+        group: 'จัดการ',
+        items: [
+          { label: 'จัดการผู้ใช้', icon: '👥', route: '/manage-users' },
+        ],
+      },
+      {
+        group: 'ระบบ',
+        items: [
+          { label: 'Backup & Restore',  icon: '💾', route: '/backup-restore' },
+          { label: 'บันทึกระบบ',      icon: '📋', route: '/system-log' },
+          { label: 'Bug Reports',       icon: '🐛', route: '/bug-reports' },
+        ],
+      },
+    ];
+  }
 
   get navGroups(): NavGroup[] {
     return this.allNavGroups
       .map(g => ({
         ...g,
-        items: g.items.filter(item =>
-          !item.roles || item.roles.includes(this.userRole)
-        ),
+        items: g.items.filter(item => !item.roles || item.roles.includes(this.userRole)),
       }))
       .filter(g => g.items.length > 0);
   }
 
-  constructor(private router: Router) {}
-
-  ngOnInit() {}
-
   private getDashboardRoute(): string {
-    return this.userRole === 'SuperAdmin'
-      ? '/super-admin/dashboard'
-      : '/admin/dashboard';
+    return this.userRole === 'SuperAdmin' ? '/super-admin/dashboard' : '/admin/dashboard';
+  }
+
+  getProfileRoute(): string {
+    return this.userRole === 'SuperAdmin' ? '/super-admin/profile' : '/admin/profile';
   }
 
   isActive(route: string): boolean {
@@ -108,6 +140,18 @@ export class Sidebar implements OnInit {
   }
 
   logout() {
+    const token = localStorage.getItem('auth_token') ?? '';
+    this.http.post(
+      `${this.constants.API_ENDPOINT}/auth/logout`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } },
+    ).subscribe({
+      complete: () => this.clearAndRedirect(),
+      error:    () => this.clearAndRedirect(), // logout ฝั่ง client เสมอ แม้ API error
+    });
+  }
+
+  private clearAndRedirect() {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
     this.router.navigate(['/login']);

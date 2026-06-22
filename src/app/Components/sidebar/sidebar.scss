@@ -80,6 +80,32 @@ $white:  #ffffff;
   }
 }
 
+/* ══ SKELETON LOADER ══ */
+@keyframes shimmer {
+  0%   { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+$shimmer-bg: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.04) 75%);
+
+.avatar-skeleton {
+  width: 100%; height: 100%;
+  background: $shimmer-bg;
+  background-size: 200px 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.skeleton-line {
+  height: 10px;
+  border-radius: 6px;
+  background: $shimmer-bg;
+  background-size: 200px 100%;
+  animation: shimmer 1.4s infinite;
+  &.wide   { width: 80%; margin-bottom: 6px; height: 12px; }
+  &.narrow { width: 50%; margin-bottom: 5px; }
+  &.mid    { width: 65%; }
+}
+
 .user-avatar { position: relative; flex-shrink: 0; }
 
 .avatar-ring {

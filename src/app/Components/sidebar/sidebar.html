@@ -5,7 +5,9 @@
     <div class="user-avatar">
       <div class="avatar-ring">
         @if (userPicture) {
-          <img class="avatar-img" [src]="userPicture" alt="avatar" referrerpolicy="no-referrer"/>
+          <img class="avatar-img" [src]="userPicture" alt="avatar"
+               referrerpolicy="no-referrer"
+               (error)="userPicture = ''" />
         } @else {
           <div class="avatar-fallback">{{ userInitials }}</div>
         }
@@ -25,7 +27,7 @@
 
   @if (isOpen) {
     <div class="profile-btn-wrap">
-      <a class="profile-btn" routerLink="/profile">
+      <a class="profile-btn" [routerLink]="getProfileRoute()">
         <span>ดูโปรไฟล์</span>
         <span class="profile-arrow">→</span>
       </a>

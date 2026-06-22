@@ -7,10 +7,11 @@ import { Search } from './page/shared/search/search';
 import { MsuUnwanted } from './page/shared/msu-unwanted/msu-unwanted';
 import { ManageUsers } from './page/shared/manage-users/manage-users';
 import { Reports } from './page/shared/reports/reports';
-import { Permissions } from './page/shared/permissions/permissions';
-import { Settings } from './page/shared/settings/settings';
 import { BackupRestore } from './page/shared/backup-restore/backup-restore';
 import { SystemLog } from './page/shared/system-log/system-log';
+import { BugReports } from './page/shared/bug-reports/bug-reports';
+import { Profile as AdminProfile } from './page/admin/profile/profile';
+import { Profile as SuperAdminProfile } from './page/super-admin/profile/profile';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -27,11 +28,12 @@ export const routes: Routes = [
 
   // เมนูจัดการ
   { path: 'manage-users',          component: ManageUsers },
-  { path: 'permissions',           component: Permissions },
   { path: 'reports',               component: Reports },
 
   // เมนูระบบ
-  { path: 'settings',              component: Settings },
   { path: 'backup-restore',        component: BackupRestore },
   { path: 'system-log',            component: SystemLog },
+  { path: 'bug-reports',           component: BugReports },
+  { path: 'admin/profile',       component: AdminProfile },
+  { path: 'super-admin/profile', component: SuperAdminProfile },
 ];

@@ -1,0 +1,191 @@
+<div class="profile-page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-top">
+      <h1 class="page-title">โปรไฟล์<span class="accent">ของฉัน</span></h1>
+      @if (!isLoading() && me()) {
+        <button class="btn-edit-toggle" [class.active]="isEditing()" (click)="toggleEdit()">
+          {{ isEditing() ? '✕ ยกเลิก' : '✏️ แก้ไข' }}
+        </button>
+      }
+    </div>
+    <p class="page-sub">ข้อมูลส่วนตัวของผู้ดูแลระบบ</p>
+  </div>
+
+  <!-- LOADING -->
+  @if (isLoading()) {
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">กำลังโหลดข้อมูลโปรไฟล์...</div>
+    </div>
+  }
+
+  @if (loadError(); as err) {
+    <div class="error-card">⚠️ {{ err }}</div>
+  }
+
+  @if (!isLoading() && me(); as d) {
+
+    <!-- PROFILE CARD -->
+    <div class="profile-card">
+      <div class="card-topbar"></div>
+
+      <!-- Avatar -->
+      <div class="avatar-wrap">
+        @if (userPicture) {
+          <img class="avatar-img" [src]="userPicture" alt="avatar" referrerpolicy="no-referrer"/>
+        } @else {
+          <div class="avatar-initial">{{ initials() }}</div>
+        }
+        <span class="online-dot"></span>
+      </div>
+
+      <!-- Name & Role -->
+      <div class="profile-name">{{ fullName() || 'ผู้ดูแลระบบ' }}</div>
+      <div class="role-badge">🛡️ {{ d.role }}</div>
+      <div class="profile-sub">{{ d.username }}</div>
+
+      <!-- Info List -->
+      <div class="info-list">
+        <div class="info-row">
+          <span class="info-label">MSU Mail</span>
+          <span class="info-value">{{ d.msuMail }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">ชื่อ - นามสกุล</span>
+          <span class="info-value">{{ fullName() || '—' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">คำนำหน้า</span>
+          <span class="info-value">{{ d.prefix || '—' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">เบอร์โทรศัพท์</span>
+          <span class="info-value">{{ d.phone || '—' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Facebook ID</span>
+          <span class="info-value">{{ d.facebookId || '—' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Line ID</span>
+          <span class="info-value">{{ d.lineId || '—' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">เข้าสู่ระบบล่าสุด</span>
+          <span class="info-value">{{ formatDate(d.lastLoginAt) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">สถานะบัญชี</span>
+          <span class="info-value status-active">{{ d.accountStatus }}</span>
+        </div>
+      </div>
+
+      <!-- Verified Banner -->
+      <div class="verified-banner">
+        ✓ MSU Google Account ยืนยันแล้ว · บัญชี {{ d.accountStatus }}
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        @for (s of stats(); track s.label) {
+          <div class="stat-item">
+            <div class="stat-value" [style.color]="s.color">{{ s.value }}</div>
+            <div class="stat-label">{{ s.label }}</div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- EDIT CARD -->
+    @if (isEditing()) {
+      <div class="edit-card">
+        <div class="edit-card-header">
+          <span class="edit-icon">✏️</span>
+          <span class="edit-title">แก้ไขข้อมูลส่วนตัว</span>
+          <span class="edit-note">แก้ไขได้เฉพาะข้อมูลด้านล่าง</span>
+        </div>
+        <div class="edit-divider"></div>
+
+        <div class="edit-field">
+          <label class="edit-label">
+            <span class="edit-label-icon">🏷️</span> คำนำหน้า
+          </label>
+          <select class="edit-input" [ngModel]="prefix()" (ngModelChange)="prefix.set($event)">
+            <option value="">— ไม่ระบุ —</option>
+            <option value="นาย">นาย</option>
+            <option value="นาง">นาง</option>
+            <option value="นางสาว">นางสาว</option>
+            <option value="ดร.">ดร.</option>
+            <option value="ผศ.">ผศ.</option>
+            <option value="รศ.">รศ.</option>
+            <option value="ศ.">ศ.</option>
+          </select>
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-label">
+            <span class="edit-label-icon">👤</span> ชื่อจริง
+          </label>
+          <input class="edit-input" type="text"
+                 [ngModel]="firstName()" (ngModelChange)="firstName.set($event)"
+                 placeholder="ชื่อจริง"/>
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-label">
+            <span class="edit-label-icon">👤</span> นามสกุล
+          </label>
+          <input class="edit-input" type="text"
+                 [ngModel]="lastName()" (ngModelChange)="lastName.set($event)"
+                 placeholder="นามสกุล"/>
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-label">
+            <span class="edit-label-icon">📞</span> เบอร์โทรศัพท์
+          </label>
+          <input class="edit-input" type="tel"
+                 [ngModel]="phone()" (ngModelChange)="phone.set($event)"
+                 placeholder="0812345678"/>
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-label">
+            <span class="edit-label-icon">📘</span> Facebook ID
+          </label>
+          <input class="edit-input"
+                 [ngModel]="facebookId()" (ngModelChange)="facebookId.set($event)"
+                 placeholder="somchai.jaidee"/>
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-label">
+            <span class="edit-label-icon">💬</span> Line ID
+          </label>
+          <input class="edit-input"
+                 [ngModel]="lineId()" (ngModelChange)="lineId.set($event)"
+                 placeholder="somchai_line"/>
+        </div>
+
+        @if (saveResult() === 'success') {
+          <div class="save-result success">✓ บันทึกข้อมูลสำเร็จ</div>
+        }
+        @if (saveResult() === 'error') {
+          <div class="save-result error">✗ เกิดข้อผิดพลาด กรุณาลองใหม่</div>
+        }
+
+        <button class="btn-save" (click)="saveProfile()" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <span class="save-spinner"></span> กำลังบันทึก...
+          } @else {
+            💾 บันทึกข้อมูล
+          }
+        </button>
+      </div>
+    }
+
+  }
+
+</div>
