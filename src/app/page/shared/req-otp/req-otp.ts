@@ -109,6 +109,7 @@ export class ReqOTP implements AfterViewInit {
     }).subscribe({
       next: (res) => {
         localStorage.setItem('auth_token', res.data.accessToken);
+        localStorage.setItem('auth_refresh_token', res.data.refreshToken);
         localStorage.setItem('user', JSON.stringify(res.data.user));
 
         const role = res.data.user.role;

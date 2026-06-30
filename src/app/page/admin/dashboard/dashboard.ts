@@ -19,6 +19,7 @@ export class Dashboard implements OnInit {
   private rawUser = JSON.parse(localStorage.getItem('user') ?? '{}');
   userName = (`${this.rawUser?.firstName ?? ''} ${this.rawUser?.lastName ?? ''}`).trim()
              || (this.rawUser?.username ?? 'Admin');
+  userInitials = ((this.rawUser?.firstName?.charAt(0) ?? '') + (this.rawUser?.lastName?.charAt(0) ?? '')).toUpperCase() || 'A';
 
   currentDate = signal(new Date().toLocaleDateString('th-TH', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -33,7 +34,10 @@ export class Dashboard implements OnInit {
   approvedAll   = computed(() => (this.statsData()?.pre_t3.approved ?? 0) + (this.statsData()?.t3.approved ?? 0));
   rejectedAll   = computed(() => (this.statsData()?.pre_t3.rejected ?? 0) + (this.statsData()?.t3.rejected ?? 0));
 
-  ngOnInit() { this.loadStats(); }
+  ngOnInit() {
+    window.scrollTo({ top: 0 });
+    this.loadStats();
+  }
 
   private loadStats() {
     this.isLoading.set(true);

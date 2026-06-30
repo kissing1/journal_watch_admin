@@ -12,6 +12,8 @@ import { SystemLog } from './page/shared/system-log/system-log';
 import { BugReports } from './page/shared/bug-reports/bug-reports';
 import { Profile as AdminProfile } from './page/admin/profile/profile';
 import { Profile as SuperAdminProfile } from './page/super-admin/profile/profile';
+import { AboutJournalWatch } from './page/shared/about-journal-watch/about-journal-watch';
+import { Manual } from './page/shared/manual/manual';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -36,4 +38,8 @@ export const routes: Routes = [
   { path: 'bug-reports',           component: BugReports },
   { path: 'admin/profile',       component: AdminProfile },
   { path: 'super-admin/profile', component: SuperAdminProfile },
+
+  // Footer pages
+  { path: 'about',  component: AboutJournalWatch },
+  { path: 'manual', component: Manual },
 ];

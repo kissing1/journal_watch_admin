@@ -58,7 +58,10 @@ export class Profile implements OnInit {
     ];
   });
 
-  ngOnInit() { this.loadProfile(); }
+  ngOnInit() {
+    window.scrollTo({ top: 0 });
+    this.loadProfile();
+  }
 
   private headers() {
     return new HttpHeaders({ Authorization: `Bearer ${this.auth.token}` });

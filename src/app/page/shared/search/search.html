@@ -1,4 +1,64 @@
-<div class="search-page">
+<!-- ═══ CAPTCHA MODAL ═══ -->
+  @if (showCaptcha()) {
+    <div class="captcha-backdrop" (click)="showCaptcha.set(false)">
+      <div class="captcha-modal" (click)="$event.stopPropagation()">
+
+        <div class="captcha-topbar"></div>
+
+        <div class="captcha-header">
+          <div class="captcha-icon">🛡️</div>
+          <div>
+            <div class="captcha-title">ยืนยันตัวตน</div>
+            <div class="captcha-subtitle">กรุณาแก้โจทย์เพื่อยืนยันว่าคุณไม่ใช่บอท</div>
+          </div>
+        </div>
+
+        <div class="captcha-body">
+
+          <!-- Puzzle canvas area -->
+          <div class="puzzle-wrap">
+            <canvas #bgCanvas [width]="CW" [height]="CH" class="puzzle-bg"></canvas>
+            <canvas #pieceCanvas [width]="PS" [height]="CH" class="puzzle-piece"
+                    [style.left.px]="puzzlePieceX()"
+                    (mousedown)="puzzleStartDrag($event)"
+                    (touchstart)="puzzleStartDrag($event)"></canvas>
+          </div>
+
+          @if (puzzleError()) {
+            <div class="captcha-error-msg">ตำแหน่งไม่ถูกต้อง — กรุณาลองใหม่อีกครั้ง</div>
+          }
+
+          <!-- Slider track -->
+          <div class="puzzle-slider-wrap">
+            <div class="puzzle-slider-track">
+              <div class="puzzle-slider-fill" [style.width.px]="puzzlePieceX()"></div>
+              <div class="puzzle-slider-handle"
+                   [style.left.px]="puzzlePieceX()"
+                   (mousedown)="puzzleStartDrag($event)"
+                   (touchstart)="puzzleStartDrag($event)">
+                ›
+              </div>
+            </div>
+            <span class="puzzle-slider-hint">← เลื่อนจิ๊กซอว์ให้เข้ารูป</span>
+          </div>
+
+          <div class="captcha-actions">
+            <button class="captcha-btn-refresh" (click)="refreshCaptcha()" type="button">
+              ↺ รีเซ็ต
+            </button>
+          </div>
+
+          <div class="captcha-note">🔒 ไม่ต้องยืนยันซ้ำภายใน 60 นาที</div>
+
+        </div>
+
+      </div>
+    </div>
+  }
+
+<!-- BG BAND: full width, เฉพาะ search-card + legend-card -->
+<div class="search-bg-band">
+  <div class="search-band-inner">
 
   <!-- SEARCH HEADER CARD -->
   <div class="search-card">
@@ -9,7 +69,7 @@
         <div class="search-header-icon">🔍</div>
         <div>
           <h2 class="search-title">ค้นหาวารสาร</h2>
-          <p class="search-subtitle">ตรวจสอบวารสารจากฐานข้อมูลก่อนยื่น Pre-T3 / T3</p>
+          <p class="search-subtitle">ตรวจสอบวารสารจากฐานข้อมูลเพื่อประกอบการพิจารณา</p>
         </div>
       </div>
       <span class="search-header-badge">MSU Journal Watch</span>
@@ -29,10 +89,28 @@
           (keyup.enter)="search()"
         />
       </div>
-      <select class="degree-select" [(ngModel)]="degree">
-        <option value="doctoral">ป.เอก (Doctoral)</option>
-        <option value="master">ป.โท (Master)</option>
-      </select>
+      <!-- Custom degree dropdown -->
+      <div class="custom-select" [class.cs-open]="showDegreeMenu()">
+        @if (showDegreeMenu()) {
+          <div class="cs-backdrop" (click)="showDegreeMenu.set(false)"></div>
+        }
+        <button class="cs-trigger" type="button" (click)="showDegreeMenu.set(!showDegreeMenu())">
+          <span class="cs-value">{{ selectedDegreeLabel }}</span>
+          <svg class="cs-arrow" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        @if (showDegreeMenu()) {
+          <div class="cs-dropdown">
+            @for (opt of degreeOptions; track opt.value) {
+              <div class="cs-option" [class.cs-option--active]="degree === opt.value" (click)="selectDegree(opt.value)">
+                @if (degree === opt.value) { <span class="cs-check">✓</span> }
+                {{ opt.label }}
+              </div>
+            }
+          </div>
+        }
+      </div>
       <button class="search-btn" (click)="search()" [disabled]="isLoading()">
         @if (isLoading()) {
           <span class="spin-icon">⏳</span> กำลังค้นหา...
@@ -69,36 +147,8 @@
       }
     </div>
 
-  </div>
+  </div><!-- /search-card -->
 
-  <!-- COMPARISON CARDS -->
-  <div class="comparison-grid">
-    @for (m of methods; track m.id) {
-      <div class="compare-card" [class.selected]="method === m.id" (click)="method = m.id">
-        <div class="compare-card-header">
-          <span class="compare-icon">{{ m.icon }}</span>
-          <span class="compare-title">{{ m.label }}</span>
-          <span class="compare-badge"
-            [class.badge-amber]="m.badgeColor === 'amber'"
-            [class.badge-red]="m.badgeColor === 'red'">
-            {{ m.badge }}
-          </span>
-        </div>
-        <div class="compare-rows">
-          @for (c of comparison; track c.label) {
-            <div class="compare-row">
-              <span class="compare-label">{{ c.label }}</span>
-              <span class="compare-value"
-                [class.ok]="m.id === 'scraping' ? c.scrapingOk : c.apiOk"
-                [class.bad]="m.id === 'scraping' ? !c.scrapingOk : !c.apiOk">
-                {{ m.id === 'scraping' ? c.scraping : c.api }}
-              </span>
-            </div>
-          }
-        </div>
-      </div>
-    }
-  </div>
 
   <!-- LEGEND -->
   <div class="legend-card">
@@ -111,7 +161,80 @@
         </div>
       }
     </div>
-  </div>
+  </div><!-- /legend-card -->
+
+  </div><!-- /search-band-inner -->
+</div><!-- /search-bg-band -->
+
+<div class="search-page">
+
+  <!-- ── INTRO (แสดงก่อน search ครั้งแรก) ── -->
+  @if (!hasSearched() && !isLoading()) {
+    <div class="intro-section">
+
+      <div class="intro-header">
+        <div class="intro-title">ระบบตรวจสอบวารสารอัตโนมัติ</div>
+        <div class="intro-sub">กรอก ISSN แล้วกด ค้นหา — ระบบตรวจสอบจาก Scopus และ TCI พร้อมเทียบเกณฑ์ มมส. ให้ทันที</div>
+      </div>
+
+      <div class="intro-db-cards">
+        <div class="intro-db-card intro-db-card--scopus">
+          <div class="intro-db-head">
+            <span class="intro-db-icon">📘</span>
+            <span class="intro-db-name">Scopus</span>
+            <span class="intro-db-badge intro-db-badge--scopus">นานาชาติ</span>
+          </div>
+          <div class="intro-db-desc">ตรวจสอบ Quartile, SJR Score, CiteScore, H-Index และสถานะ Active / Discontinued</div>
+          <div class="intro-db-tags">
+            <span>Q1 – Q4</span>
+            <span>SJR Score</span>
+            <span>CiteScore</span>
+            <span>H-Index</span>
+          </div>
+        </div>
+
+        <div class="intro-db-card intro-db-card--tci">
+          <div class="intro-db-head">
+            <span class="intro-db-icon">📗</span>
+            <span class="intro-db-name">TCI</span>
+            <span class="intro-db-badge intro-db-badge--tci">ไทย</span>
+          </div>
+          <div class="intro-db-desc">ตรวจสอบกลุ่มที่ 1–3, สถานะ Active / Inactive และสาขาวิชาหลักของวารสาร</div>
+          <div class="intro-db-tags">
+            <span>กลุ่มที่ 1 – 3</span>
+            <span>Active / Inactive</span>
+            <span>สาขาวิชา</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="intro-steps-card">
+        <div class="intro-steps-title">วิธีใช้งาน</div>
+        <div class="intro-steps">
+          <div class="intro-step">
+            <div class="intro-step-num">1</div>
+            <div class="intro-step-text">กรอก ISSN<br><span>ของวารสาร</span></div>
+          </div>
+          <div class="intro-step-arrow">›</div>
+          <div class="intro-step">
+            <div class="intro-step-num">2</div>
+            <div class="intro-step-text">เลือกระดับ<br><span>ป.เอก / ป.โท</span></div>
+          </div>
+          <div class="intro-step-arrow">›</div>
+          <div class="intro-step">
+            <div class="intro-step-num">3</div>
+            <div class="intro-step-text">กด ค้นหา<br><span>รอ 3–8 วินาที</span></div>
+          </div>
+          <div class="intro-step-arrow">›</div>
+          <div class="intro-step">
+            <div class="intro-step-num">4</div>
+            <div class="intro-step-text">ดูผล<br><span>การตรวจสอบ</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
 
   <!-- LOADING -->
   @if (isLoading()) {
@@ -294,7 +417,7 @@
                 <span class="conflict-section-title">💡 คำแนะนำเร่งด่วน</span>
               </div>
               <ul class="conflict-advice-list">
-                <li>🚫 <strong>ห้ามยื่น Pre-T3/T3 ทันที</strong> — ระบบไม่สามารถสรุปผลได้อย่างมั่นใจ 100% เนื่องจากข้อมูลขัดแย้ง</li>
+                <li>🚫 <strong>ไม่ควรนำข้อมูลนี้ไปประกอบการพิจารณาทันที</strong> — ระบบไม่สามารถสรุปผลได้อย่างมั่นใจ 100% เนื่องจากข้อมูลขัดแย้ง</li>
                 <li>📞 <strong>ติดต่อบัณฑิตวิทยาลัยโดยตรง</strong> แจ้งชื่อวารสาร ISSN {{ r.issn }} และสถานะ Scopus Discontinued vs TCI Active เพื่อขอคำยืนยัน</li>
                 <li>👨‍🏫 <strong>ปรึกษาอาจารย์ที่ปรึกษา</strong> และนำผล Screenshot ของหน้าจอแบบนี้ด้วยเพื่อประกอบการพิจารณา</li>
                 <li>📝 หากบัณฑิตวิทยาลัย<strong>อนุมัติเป็นลายลักษณ์อักษร</strong> จึงสามารถนำมายื่นได้ โดยแนบหลักฐานการอนุมัติยืนยันด้วย</li>
@@ -389,16 +512,16 @@
 
         <!-- Advice -->
         <div class="pred-advice-box">
-          <div class="pred-advice-title">💡 คำแนะนำสำหรับนิสิต</div>
-          <p>✋ ห้ามส่งบทความ หรือชำระค่า APC ให้กับวารสารนี้โดยเด็ดขาด</p>
-          <p>🔍 ค้นหาวารสารใหม่ที่มีอยู่ใน Scopus (Q1–Q2) หรือ TCI กลุ่มที่ 1 แทน</p>
-          <p>👨‍🏫 ปรึกษาอาจารย์ที่ปรึกษาเพื่อขอคำแนะนำวารสารที่เหมาะสม</p>
-          <p>📞 ติดต่อบัณฑิตวิทยาลัย หากต้องการความช่วยเหลือเพิ่มเติม</p>
+          <div class="pred-advice-title">💡 ข้อสังเกตสำหรับผู้ดูแลระบบ</div>
+          <p>✋ วารสารนี้ถูกระบุเป็น Predatory Journal — ไม่ผ่านเกณฑ์สำหรับทุกระดับการศึกษา</p>
+          <p>🔍 แนะนำให้นิสิตค้นหาวารสารใหม่ใน Scopus (Q1–Q2) หรือ TCI กลุ่มที่ 1 แทน</p>
+          <p>👨‍🏫 แจ้งอาจารย์ที่ปรึกษาและนิสิตเพื่อดำเนินการหาวารสารทดแทน</p>
+          <p>📞 บันทึกและรายงานต่อบัณฑิตวิทยาลัยหากพบการใช้วารสารดังกล่าว</p>
         </div>
 
         <!-- Summary -->
         <div class="pred-summary-box">
-          <div class="pred-summary-title">⛔ สรุปผล — ไม่สามารถยื่น Pre-T3 / T3 ได้</div>
+          <div class="pred-summary-title">⛔ สรุปผล — วารสารนี้ไม่ผ่านเกณฑ์</div>
           <div class="pred-summary-row"><span>สถานะ Scopus</span><span class="bad">ไม่พบ ✗</span></div>
           <div class="pred-summary-row"><span>สถานะ TCI</span><span class="bad">ไม่พบ ✗</span></div>
           <div class="pred-summary-row"><span>สถานะ นานาชาติไม่รองรับ</span><span class="bad">พบ ✗</span></div>
@@ -462,6 +585,9 @@
           <span class="badge-date">📅 ตรวจสอบ: {{ r.checkDate }}</span>
           <span class="badge-cache" [class.badge-cache--hit]="r.fromCache" [class.badge-cache--live]="!r.fromCache">
             {{ r.fromCache ? '⚡ จาก Cache' : '🔄 ข้อมูลสด' }}
+          </span>
+          <span class="badge-expiry" [class.badge-expiry--warning]="expiryWarning">
+            ⏱ Cache: {{ expiryLabel }}
           </span>
         </div>
 
@@ -604,14 +730,14 @@
         <div class="notice-box">
           <span class="notice-icon">🖨️</span>
           <span class="notice-text">
-            <strong>ข้อมูลที่ต้องมีในหน้าจอสำหรับแบบ Pre-T3 / T3:</strong>
-            ชื่อวารสารเดิม · ISSN · Quartile · SJR · CiteScore · Percentile · สถานะ Active · วันที่ตรวจสอบ · ผล "ผ่านเกณฑ์" · ชื่อนิสิตและระดับการศึกษา
+            <strong>ข้อมูลที่แสดงในหน้าจอสำหรับประกอบการพิจารณา:</strong>
+            ชื่อวารสาร · ISSN · Quartile · SJR · CiteScore · Percentile · สถานะ Active · วันที่ตรวจสอบ · ผลการประเมิน
           </span>
         </div>
 
         <!-- Action Buttons -->
         <div class="result-actions">
-          <button class="btn-print">พิมพ์/PDF</button>
+          <button class="btn-print" (click)="printResult()">พิมพ์/PDF</button>
         </div>
 
       </div>
@@ -636,14 +762,14 @@
               <div class="banner-title">
                 {{ tciPass ? 'พบในฐานข้อมูล TCI — วารสารผ่านเกณฑ์'
                    : t.inactive ? 'วารสาร TCI ไม่ Active — ไม่ผ่านเกณฑ์'
-                   : 'พบในฐานข้อมูล TCI — ไม่ผ่านเกณฑ์' }}
+                   : 'พบในฐานข้อมูล TCI — ไม่ผ่านเกณฑ์ระดับที่เลือก' }}
               </div>
               <div class="banner-desc">
                 {{ tciPass
                    ? 'วารสารนี้อยู่ใน TCI กลุ่มที่ ' + t.tier + ' มีสถานะ Active สามารถนำไปยื่น Pre-T3 / T3 ได้'
                    : t.inactive
                      ? 'วารสารนี้มีสถานะ Inactive ไม่สามารถนำไปยื่น Pre-T3 / T3 ได้'
-                     : 'วารสารนี้อยู่ใน TCI กลุ่มที่ ' + t.tier + ' ไม่ผ่านเกณฑ์ที่กำหนด' }}
+                     : 'วารสารนี้อยู่ใน TCI กลุ่มที่ ' + t.tier + ' ไม่ผ่านเกณฑ์ระดับที่เลือก กรุณาตรวจสอบเกณฑ์' }}
               </div>
             </div>
           </div>
@@ -681,6 +807,9 @@
             <span class="badge-date">📅 ตรวจสอบ: {{ t.checkDate }}</span>
             <span class="badge-cache" [class.badge-cache--hit]="t.fromCache" [class.badge-cache--live]="!t.fromCache">
               {{ t.fromCache ? '⚡ จาก Cache' : '🔄 ข้อมูลสด' }}
+            </span>
+            <span class="badge-expiry" [class.badge-expiry--warning]="expiryWarning">
+              ⏱ Cache: {{ expiryLabel }}
             </span>
           </div>
 
@@ -794,14 +923,14 @@
           <div class="notice-box">
             <span class="notice-icon">📋</span>
             <span class="notice-text">
-              <strong>ข้อมูลที่ต้องมีในหน้าจอสำหรับแบบ Pre-T3 / T3:</strong>
-              ชื่อวารสาร (ไทย+อังกฤษ) · ISSN · กลุ่ม TCI · สถานะ Active · รอบการรับรอง · สาขา · วันที่ตรวจสอบ · ผล "ผ่านเกณฑ์" · ชื่อนิสิตและระดับการศึกษา
+              <strong>ข้อมูลที่แสดงในหน้าจอสำหรับประกอบการพิจารณา:</strong>
+              ชื่อวารสาร (ไทย+อังกฤษ) · ISSN · กลุ่ม TCI · สถานะ Active · รอบการรับรอง · สาขา · วันที่ตรวจสอบ · ผลการประเมิน
             </span>
           </div>
 
           <!-- Action Buttons -->
           <div class="result-actions">
-            <button class="btn-print">พิมพ์/PDF</button>
+            <button class="btn-print" (click)="printResult()">พิมพ์/PDF</button>
           </div>
 
         </div>
@@ -823,5 +952,5 @@
       <button class="btn-secondary" (click)="hasSearched.set(false); errorMessage.set('')">ลองใหม่</button>
     </div>
   }
+</div><!-- /search-page -->
 
-</div>
